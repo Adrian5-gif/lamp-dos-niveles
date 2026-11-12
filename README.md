@@ -23,33 +23,21 @@
 
 ## 1. Introducción
 
-En esta práctica se monta una pila **LAMP** (Linux, Apache, MySQL, PHP) repartida en **dos máquinas virtuales**:
+En esta práctica se monta una pila **LAMP** Linux, Apache, MySQL, PHP repartida en **dos máquinas virtuales**:
 
-- Una máquina con el **servidor web** (Apache + PHP).
-- Otra máquina con el **servidor de base de datos** (MariaDB).
+- Una máquina con el **servidor web** Apache y PHP.
+- Otra máquina con el **servidor de base de datos** MariaDB.
 
 Sobre esta infraestructura se despliega una aplicación web de **gestión de usuarios** que permite añadir, editar y borrar usuarios.
 
-Todo se crea automáticamente con **Vagrant** y **scripts de Bash**.
+Todo se crea  con **Vagrant** y **scripts de Bash**.
 
 ## 2. Arquitectura
 
-```
-            Tu PC (anfitrión)
-     http://localhost:8080
-                │  (reenvío de puertos 8080 → 80)
-                ▼
- ┌──────────────────────────┐        ┌──────────────────────────┐
- │    AdrianRiosApache      │        │     AdrianRiosMysql      │
- │  Apache + PHP            │──────▶│  MariaDB                 │
- │  192.168.56.10           │  3306  │  192.168.56.11           │
- │  NAT: SÍ tiene Internet  │        │  NAT: NO tiene Internet  │
- └──────────────────────────┘        └──────────────────────────┘
-```
 
 | Máquina | Hostname | IP privada | Internet | Servicio |
-|---|---|---|---|---|
-| Web | AdrianRiosApache | 192.168.56.10 | Sí (NAT) | Apache + PHP |
+
+| Web | AdrianRiosApache | 192.168.56.10 | Sí (NAT) | Apache y PHP |
 | Base de datos | AdrianRiosMysql | 192.168.56.11 | No | MariaDB |
 
 ## 3. Requisitos
@@ -121,10 +109,10 @@ end
 **Explicación:**
 
 - `config.vm.box = "debian/bookworm64"`: las dos máquinas usan Debian 12.
-- `config.vm.define "mysql"` / `"apache"`: define cada máquina. MySQL va primero para que la base de datos esté lista antes que la web.
+- `config.vm.define "mysql"` / `"apache"`: define cada máquina, MySQL va primero para que la base de datos esté lista antes que la web.
 - `vm.hostname`: el nombre de cada máquina.
-- `private_network`: red interna para que las dos máquinas se comuniquen.
-- `forwarded_port guest: 80, host: 8080`: al entrar en `localhost:8080` desde el PC, se llega al Apache de la máquina.
+- `private_network`: red interna para que las dos máquinas se hablen
+- `forwarded_port guest: 80, host: 8080`: al entrar en `localhost:8080` desde el PC se llega al Apache de la máquina.
 - `vm.provision "shell", path: ...`: ejecuta el script de aprovisionamiento de cada máquina.
 - `run: "always"` con `ip route del default`: en cada arranque se quita la puerta de enlace de la máquina MySQL, así nunca tiene salida a Internet.
 
@@ -146,7 +134,7 @@ APACHE_IP=192.168.56.10
 # 1. Actualizar la lista de paquetes
 apt-get update
 
-# 2. Instalar MariaDB (en Debian 12 sustituye a MySQL)
+# 2. Instalar MariaDB 
 apt-get install -y mariadb-server
 
 # 3. Permitir conexiones desde otras máquinas
@@ -191,11 +179,11 @@ ip route del default || true
 |---|---|---|
 | — | `set -ex` | Muestra cada orden y para el script si alguna falla. |
 | 1 | `apt-get update` | Actualiza la lista de paquetes. |
-| 2 | `apt-get install -y mariadb-server` | Instala MariaDB (en Debian 12 sustituye a MySQL). |
-| 3 | `sed -i ... bind-address = 0.0.0.0` | Hace que MariaDB acepte conexiones desde otras máquinas, no solo desde sí misma. |
+| 2 | `apt-get install -y mariadb-server` | Instala MariaDB . |
+| 3 | `sed -i ... bind-address = 0.0.0.0` | Hace que MariaDB acepte conexiones desde otras máquinas no solo desde sí misma. |
 | 4 | `systemctl restart mariadb` | Reinicia el servicio para aplicar el cambio. |
 | 5 | `CREATE DATABASE` / `CREATE TABLE` | Crea la base de datos `lamp_db` y la tabla `users` que usa la aplicación. |
-| 6 | `CREATE USER` / `GRANT` | Crea el usuario `lamp_user`, que solo puede conectarse desde la IP de Apache (192.168.56.10). |
+| 6 | `CREATE USER` / `GRANT` | Crea el usuario `lamp_user`, que solo puede conectarse desde la IP de Apache 192.168.56.10. |
 | 7 | `ip route del default` | Borra la puerta de enlace: la máquina se queda sin Internet. |
 
 ## 6. Script de aprovisionamiento de Apache
@@ -358,4 +346,4 @@ Vídeo del funcionamiento de la aplicación (añadir, editar y borrar usuarios):
 
 ## 11. Conclusión
 
-Separar el servidor web y la base de datos en dos máquinas mejora la **seguridad**, porque la base de datos no tiene acceso a Internet y solo acepta conexiones desde el servidor web. Gracias a **Vagrant** y a los **scripts de Bash**, todo el entorno se puede crear de nuevo con un solo comando (`vagrant up`).
+Separar el servidor web y la base de datos en dos máquinas mejora la seguridad, porque la base de datos no tiene acceso a Internet y solo acepta conexiones desde el servidor web. gracias a Vagrant y a los scripts de Bash, todo el entorno se puede crear de nuevo con un solo comando (`vagrant up`).
