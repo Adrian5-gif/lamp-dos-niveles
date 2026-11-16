@@ -1,4 +1,4 @@
-# Pila LAMP en dos niveles con Vagrant
+# Pila LAMP en dos niveles con Vagrant.
 
 **Alumno:** Adrián Ríos Mendoza
 **Módulo:** Implantación de Aplicaciones Web (IAPLW) – 2º ASIR
